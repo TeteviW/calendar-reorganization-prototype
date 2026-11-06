@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Calendar – Schedule Reorganization Assistant</title>
+<style>
+:root{--bg:#f6f8fc;--card:#fff;--ink:#1f1f1f;--mute:#5f6368;--line:#dadce0;--blue:#1a73e8;--blueb:#d2e3fc;--red:#d93025;--redb:#fce8e6;--grn:#188038;--grnb:#e6f4ea;--amb:#b06000;--ambb:#fef7e0;--pur:#7b3fb3;--purb:#ede3f7;--teal:#0b7a75;--tealb:#d9f1ef;--shadow:rgba(60,64,67,.25);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181b;--card:#222428;--ink:#ececec;--mute:#a0a4ab;--line:#3c4043;--blue:#8ab4f8;--blueb:#2b3d5c;--red:#f28b82;--redb:#4a2523;--grn:#81c995;--grnb:#1f3a2a;--amb:#fdd663;--ambb:#40371a;--pur:#c9a7ee;--purb:#3a2c4d;--teal:#7fd6d0;--tealb:#1d3b3a;--shadow:rgba(0,0,0,.6)}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:"Inter","Segoe UI",system-ui,Helvetica,Arial,sans-serif;font-size:14px}
+.top{height:56px;background:var(--card);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:0 20px}
+.logo{width:28px;height:28px;border-radius:6px;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.top h1{font-size:19px;margin:0 10px 0 0;font-weight:600}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:18px;padding:7px 16px;font:500 13.5px inherit;font-family:inherit;cursor:pointer}
+.btn:hover{background:var(--bg)}
+.btn.p{background:var(--blue);border-color:var(--blue);color:#fff}.btn.p:hover{filter:brightness(.93)}
+.btn.p:disabled{opacity:.4;cursor:not-allowed}
+.btn.t{border-color:transparent;background:transparent;color:var(--mute)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.p{color:#111}}
+.date{font-size:18px;font-weight:500}
+.sp{margin-left:auto}
+.main{display:grid;grid-template-columns:minmax(0,1fr) 400px;gap:20px;padding:20px;max-width:1280px;margin:0 auto;align-items:start}
+@media(max-width:900px){.main{grid-template-columns:1fr}}
+.cal{background:var(--card);border:1px solid var(--line);border-radius:12px;position:relative;height:590px;overflow:hidden}
+.ch{height:46px;border-bottom:1px solid var(--line);display:flex;align-items:center;padding-left:72px;font-weight:600}
+.ch small{color:var(--mute);font-weight:400;margin-left:8px}
+.grid{position:absolute;left:0;right:0;top:46px;bottom:0}
+.hl{position:absolute;left:64px;right:0;height:1px;background:var(--line)}
+.hr{position:absolute;left:0;width:56px;text-align:right;font-size:11.5px;color:var(--mute);transform:translateY(-50%)}
+.ev{position:absolute;left:72px;right:12px;border-radius:7px;padding:5px 10px;font-size:12.5px;line-height:1.3;overflow:hidden;border-left:4px solid;transition:top .35s,height .35s,opacity .2s}
+.ev b{display:block;font-size:13px}
+.ev span.m{opacity:.8}
+.chip{display:inline-block;font-size:10.5px;font-weight:600;border-radius:9px;padding:1px 7px;margin-left:6px;vertical-align:1px}
+.blue{background:var(--blueb);color:var(--blue);border-color:var(--blue)}
+.teal{background:var(--tealb);color:var(--teal);border-color:var(--teal)}
+.pur{background:var(--purb);color:var(--pur);border-color:var(--pur)}
+.amb{background:var(--ambb);color:var(--amb);border-color:var(--amb)}
+.conf{background:repeating-linear-gradient(135deg,var(--redb) 0 6px,transparent 6px 9px),var(--redb);color:var(--red);border-color:var(--red);left:calc(72px + 36%);box-shadow:0 0 0 1px var(--red)}
+.fade{opacity:.45}
+.ghost{background:var(--grnb);color:var(--grn);border:2px dashed var(--grn);border-left-width:2px}
+.ghost.bad{background:var(--redb);color:var(--red);border-color:var(--red)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 1px 3px var(--shadow)}
+.ph{display:flex;gap:10px;align-items:center}
+.ph .ic{width:34px;height:34px;border-radius:50%;background:var(--blueb);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:17px}
+.ph h2{margin:0;font-size:17px;font-weight:600}
+.note{font-size:12.5px;color:var(--mute);margin:12px 0 16px}
+.alert{background:var(--redb);color:var(--ink);border-left:4px solid var(--red);border-radius:8px;padding:12px 14px;margin-bottom:16px}
+.alert b{display:block;color:var(--red);margin-bottom:3px;font-size:14.5px}
+.sec{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);font-weight:600;margin:4px 0 8px}
+.chg{border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:9px}
+.chg .n{font-weight:600;margin-bottom:4px}
+.chg .r{display:flex;align-items:center;gap:8px;font-size:13px;flex-wrap:wrap}
+.old{color:var(--mute);text-decoration:line-through}
+.new{color:var(--grn);font-weight:700}
+.ok{display:flex;gap:8px;align-items:center;color:var(--grn);font-weight:600;margin:12px 0 18px;font-size:13.5px}
+.bad{color:var(--red);font-weight:600}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.row .btn{flex:1;white-space:nowrap}
+select{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card);color:var(--ink);font:inherit;margin:6px 0}
+.stat{font-size:12.5px;font-weight:600;min-height:18px}
+.done{background:var(--grnb);border-radius:8px;padding:14px;margin-bottom:16px;color:var(--ink)}
+.done b{display:block;color:var(--grn);font-size:15px;margin-bottom:4px}
+.steps{display:flex;gap:6px;margin:0 0 14px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--line)}.steps i.on{background:var(--blue)}
+</style>
+</head>
+<body>
+<div class="top"><div class="logo">31</div><h1>Calendar</h1><button class="btn">Today</button><span class="date">Tuesday, March 10, 2026</span><button class="btn t sp" onclick="reset()">&#8635; Reset demo</button></div>
+<div class="main">
+  <div class="cal"><div class="ch">Tue <small>10</small></div><div class="grid" id="grid"></div></div>
+  <div class="panel" id="panel"></div>
+</div>
+<script>
+var meet={s:540,e:690},lunch={s:780,e:840},D=60;
+var cur={report:660,slides:900},prop={report:720,slides:840},man,acc,st='conflict';
+var PX=56/60,HR0=480;
+function f(m){var h=Math.floor(m/60),mm=m%60,a=h>=12?'PM':'AM';h=h%12||12;return h+':'+(mm<10?'0':'')+mm+' '+a}
+function rg(s,e){return f(s)+'–'+f(e===undefined?s+D:e)}
+function ov(a,b,c,d){return a<d&&c<b}
+function clash(k,s,o){var r=[];if(ov(s,s+D,meet.s,meet.e))r.push('Team Meeting');if(ov(s,s+D,lunch.s,lunch.e))r.push('Lunch');if(ov(s,s+D,o,o+D))r.push(k=='report'?'Prepare Slides':'Write Report');return r}
+function y(m){return (m-HR0)*PX}
+function ev(cls,name,s,e,extra,lbl){return '<div class="ev '+cls+'" style="top:'+(y(s)+2)+'px;height:'+((e-s)*PX-4)+'px"><b>'+name+(lbl||'')+'</b><span class="m">'+rg(s,e)+'</span>'+(extra||'')+'</div>'}
+function cal(){
+  var h='';for(var i=8;i<=17;i++){h+='<div class="hl" style="top:'+y(i*60)+'px"></div><div class="hr" style="top:'+y(i*60)+'px">'+f(i*60).replace(':00','')+'</div>'}
+  h+=ev('blue','Team Meeting',meet.s,meet.e,'','<span class="chip" style="background:var(--ambb);color:var(--amb)">Extended</span>');
+  h+=ev('teal','Lunch',lunch.s,lunch.e);
+  if(st=='accepted'){h+=ev('amb','Write Report',acc.report,acc.report+D);h+=ev('pur','Prepare Slides',acc.slides,acc.slides+D)}
+  else{
+    h+=ev('conf','Write Report',cur.report,cur.report+D,'','<span class="chip" style="background:var(--red);color:var(--card)">Conflict</span>');
+    var prev=st=='suggest'||st=='manual';
+    h+=ev('pur'+(prev?' fade':''),'Prepare Slides',cur.slides,cur.slides+D);
+    if(prev){var p=st=='manual'?man:prop;
+      var br=clash('report',p.report,p.slides).length,bs=clash('slides',p.slides,p.report).length;
+      h+=ev('ghost'+(br?' bad':''),'Write Report',p.report,p.report+D,'','<span class="chip" style="border:1px solid">Proposed</span>');
+      h+=ev('ghost'+(bs?' bad':''),'Prepare Slides',p.slides,p.slides+D,'','<span class="chip" style="border:1px solid">Proposed</span>')}}
+  document.getElementById('grid').innerHTML=h}
+function steps(n){var s='<div class="steps">';for(var i=1;i<=4;i++)s+='<i class="'+(i<=n?'on':'')+'"></i>';return s+'</div>'}
+function head(){return '<div class="ph"><div class="ic">&#10024;</div><h2>Reorganization Assistant</h2></div><div class="note">The assistant only suggests changes. Nothing moves until you accept.</div>'}
+var ALERT='<div class="alert"><b>Schedule conflict detected</b>Your Team Meeting was extended to 11:30 AM and now overlaps with Write Report.</div>';
+function opts(v){var o='';for(var m=480;m<=960;m+=30)o+='<option value="'+m+'"'+(m==v?' selected':'')+'>'+rg(m)+'</option>';return o}
+function panel(){
+  var h=head(),n={conflict:1,suggest:2,manual:3,accepted:4,rejected:1}[st];
+  if(st!='rejected')h+=steps(n);
+  if(st=='conflict'){h+=ALERT+'<div class="row"><button class="btn p" onclick="go(\'suggest\')">Review suggested fix</button></div>'}
+  else if(st=='suggest'){
+    h+=ALERT+'<div class="sec">Suggested changes</div>';
+    [['Write Report','report'],['Prepare Slides','slides']].forEach(function(t){h+='<div class="chg"><div class="n">'+t[0]+'</div><div class="r"><span class="old">'+rg(cur[t[1]])+'</span>&rarr;<span class="new">'+rg(prop[t[1]])+'</span></div></div>'});
+    h+='<div class="ok">&#10003; No additional conflicts detected.</div><div class="row"><button class="btn p" onclick="accept()">Accept Changes</button><button class="btn" onclick="adjust()">Adjust Manually</button><button class="btn t" onclick="go(\'rejected\')">Reject</button></div>'}
+  else if(st=='manual'){
+    h+='<div class="sec">Adjust suggested times</div>';
+    var any=false;
+    [['Write Report','report','slides'],['Prepare Slides','slides','report']].forEach(function(t){
+      var c=clash(t[1],man[t[1]],man[t[2]]);if(c.length)any=true;
+      h+='<div class="chg"><div class="n">'+t[0]+' <span class="old" style="font-weight:400;font-size:12px">was '+rg(cur[t[1]])+'</span></div><select aria-label="'+t[0]+' time" onchange="man.'+t[1]+'=+this.value;render()">'+opts(man[t[1]])+'</select><div class="stat '+(c.length?'bad':'new')+'">'+(c.length?'&#9888; Overlaps '+c.join(' and '):'&#10003; No conflict')+'</div></div>'});
+    h+='<div class="row" style="margin-top:14px"><button class="btn p" '+(any?'disabled':'')+' onclick="confirmMan()">Confirm schedule</button><button class="btn" onclick="go(\'suggest\')">Back</button></div>'}
+  else if(st=='accepted'){
+    h+='<div class="done"><b>&#10003; Schedule updated successfully.</b>Write Report is now '+rg(acc.report)+'. Prepare Slides is now '+rg(acc.slides)+'.</div><div class="row"><button class="btn p" onclick="undo()">Undo</button></div>'}
+  else{h+='<div class="alert" style="background:var(--ambb);border-color:var(--amb)"><b style="color:var(--amb)">Suggestion dismissed</b>Nothing was changed. The conflict is still on your calendar, so you will need to resolve it manually.</div><div class="row"><button class="btn p" onclick="go(\'suggest\')">Reopen suggestion</button></div>'}
+  document.getElementById('panel').innerHTML=h}
+function render(){cal();panel()}
+function go(s){st=s;render()}
+function accept(){acc={report:prop.report,slides:prop.slides};go('accepted')}
+function adjust(){man={report:prop.report,slides:prop.slides};go('manual')}
+function confirmMan(){acc={report:man.report,slides:man.slides};go('accepted')}
+function undo(){go('suggest')}
+function reset(){st='conflict';render()}
+render();
+</script>
+</body>
+</html>
